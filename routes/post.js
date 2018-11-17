@@ -11,6 +11,8 @@ router.post('/', authenticate, async (req, res) => {
 		const post = new Post({
 			title: req.body.title,
 			description: req.body.description,
+			before_img: req.body.before_img,
+			after_img: req.body.after_img,
 			_creator: res.user._id
 		})
 		const doc = await post.save()
@@ -79,7 +81,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 router.patch('/:id', authenticate, async (req, res) => {
 	try {
 		const { id } = req.params
-		const body = _.pick(req.body, ['title', 'description'])
+		const body = _.pick(req.body, ['title', 'description', 'before_img', 'after_img'])
 
 		if (!ObjectID.isValid(id)) {
 			return res.status(404).json({ error: 'Invalid ID' })
@@ -91,6 +93,76 @@ router.patch('/:id', authenticate, async (req, res) => {
 
 		if (!post) {
 			return res.status(404).json({ error: 'Unable to update that post' })
+		}
+
+		res.status(200).json(post)
+	} catch (err) {
+		res.status(400).send({ error: 'Something went wrong' })
+	}
+})
+
+router.patch('/vote/before/:id', authenticate, async (req, res) => {
+	try {
+		const { id } = req.params
+
+		if (!ObjectID.isValid(id)) {
+			return res.status(404).json({ error: 'Invalid ID' })
+		}
+
+		const data = await Post.findById(id)
+		console.log(data)
+
+		const post = await Post.findOneAndUpdate({
+			_id: id
+		}, {
+			$set: {
+				before_votes: _.isEmpty(data.before_votes)
+					? [...data.before_votes, { _voter: req.body.user_id, voted: true }]
+					: (data.before_votes.map(item => item._voter === req.body.user_id
+						? { ...item, voted: !item.voted } : item)),
+				after_votes: _.isEmpty(data.before_votes)
+					? [...data.after_votes, { _voter: req.body.user_id, voted: false }]
+					: (data.after_votes.map(item => item._voter === req.body.user_id
+						? { ...item, voted: !item.voted } : item))
+			}
+		},
+		{ new: true })
+
+		if (!post) {
+			return res.status(404).json({ error: 'Unable to bevote on that post' })
+		}
+
+		res.status(200).json(post)
+	} catch (err) {
+		res.status(400).send({ error: 'Something went wrong' })
+	}
+})
+
+router.patch('/vote/after/:id', authenticate, async (req, res) => {
+	try {
+		const { id } = req.params
+
+		if (!ObjectID.isValid(id)) {
+			return res.status(404).json({ error: 'Invalid ID' })
+		}
+
+		const data = await Post.findById(id)
+
+		const post = await Post.findOneAndUpdate({
+			_id: id
+		}, { $set: {
+			after_votes: _.isEmpty(data.after_votes)
+				? [...data.after_votes, { _voter: req.body.user_id, voted: true }]
+				: (data.after_votes.map(item => item._voter === req.body.user_id
+					? { ...item, voted: !item.voted } : item)),
+			before_votes: _.isEmpty(data.before_votes)
+				? [...data.before_votes, { _voter: req.body.user_id, voted: false }]
+				: (data.before_votes.map(item => item._voter === req.body.user_id
+					? { ...item, voted: !item.voted } : item))
+		} }, { new: true })
+
+		if (!post) {
+			return res.status(404).json({ error: 'Unable to afvote on that post' })
 		}
 
 		res.status(200).json(post)
