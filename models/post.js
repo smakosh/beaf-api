@@ -27,6 +27,10 @@ const Post = mongoose.model('Post', {
 	_creator: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true
+	},
+	_creator_username: {
+		type: String,
+		required: true
 	}
 })
 
