@@ -109,31 +109,25 @@ router.patch('/vote/before/:id', authenticate, async (req, res) => {
 			return res.status(404).json({ error: 'Invalid ID' })
 		}
 
-		const data = await Post.findById(id)
-		console.log(data)
+		const query = {
+			_id: id,
+			before_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } },
+			after_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } }
+		}
 
-		const post = await Post.findOneAndUpdate({
-			_id: id
-		}, {
-			$set: {
-				before_votes: _.isEmpty(data.before_votes)
-					? [...data.before_votes, { _voter: req.body.user_id, voted: true }]
-					: (data.before_votes.map(item => item._voter === req.body.user_id
-						? { ...item, voted: !item.voted } : item)),
-				after_votes: _.isEmpty(data.before_votes)
-					? [...data.after_votes, { _voter: req.body.user_id, voted: false }]
-					: (data.after_votes.map(item => item._voter === req.body.user_id
-						? { ...item, voted: !item.voted } : item))
-			}
-		},
-		{ new: true })
+		const update = {
+			$addToSet: { before_votes: req.body.user_id }
+		}
 
-		if (!post) {
+		const updated = await Post.updateOne(query, update)
+
+		if (!updated) {
 			return res.status(404).json({ error: 'Unable to bevote on that post' })
 		}
 
-		res.status(200).json(post)
+		res.status(200).json(updated)
 	} catch (err) {
+		console.log(err)
 		res.status(400).send({ error: 'Something went wrong' })
 	}
 })
@@ -146,26 +140,23 @@ router.patch('/vote/after/:id', authenticate, async (req, res) => {
 			return res.status(404).json({ error: 'Invalid ID' })
 		}
 
-		const data = await Post.findById(id)
-
-		const post = await Post.findOneAndUpdate({
-			_id: id
-		}, { $set: {
-			after_votes: _.isEmpty(data.after_votes)
-				? [...data.after_votes, { _voter: req.body.user_id, voted: true }]
-				: (data.after_votes.map(item => item._voter === req.body.user_id
-					? { ...item, voted: !item.voted } : item)),
-			before_votes: _.isEmpty(data.before_votes)
-				? [...data.before_votes, { _voter: req.body.user_id, voted: false }]
-				: (data.before_votes.map(item => item._voter === req.body.user_id
-					? { ...item, voted: !item.voted } : item))
-		} }, { new: true })
-
-		if (!post) {
-			return res.status(404).json({ error: 'Unable to afvote on that post' })
+		const query = {
+			_id: id,
+			after_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } },
+			before_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } }
 		}
 
-		res.status(200).json(post)
+		const update = {
+			$addToSet: { after_votes: req.body.user_id }
+		}
+
+		const updated = await Post.updateOne(query, update)
+
+		if (!updated) {
+			return res.status(404).json({ error: 'Unable to bevote on that post' })
+		}
+
+		res.status(200).json(updated)
 	} catch (err) {
 		res.status(400).send({ error: 'Something went wrong' })
 	}

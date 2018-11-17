@@ -16,7 +16,6 @@ module.exports = {
         'no-shadow': 0,
         'no-underscore-dangle': 0,
         'func-names': 0,
-        'consistent-return': 0,
-        'no-confusing-arrow': 0
+        'consistent-return': 0
     }
 }

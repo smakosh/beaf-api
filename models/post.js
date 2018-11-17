@@ -18,24 +18,8 @@ const Post = mongoose.model('Post', {
 		type: String,
 		required: true
 	},
-	before_votes: [{
-		_voter: {
-			type: mongoose.Schema.Types.ObjectId
-		},
-		voted: {
-			type: Boolean,
-			default: false
-		}
-	}],
-	after_votes: [{
-		_voter: {
-			type: mongoose.Schema.Types.ObjectId,
-		},
-		voted: {
-			type: Boolean,
-			default: false
-		}
-	}],
+	before_votes: [],
+	after_votes: [],
 	date: {
 		type: Date,
 		default: Date.now()
