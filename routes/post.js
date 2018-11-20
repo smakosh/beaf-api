@@ -34,9 +34,20 @@ router.get('/personal', authenticate, async (_req, res) => {
 	}
 })
 
+
 router.get('/all', authenticate, async (_req, res) => {
 	try {
 		const posts = await Post.find()
+
+		res.status(200).json(posts)
+	} catch (err) {
+		res.status(400).json({ error: 'This user has no posts added' })
+	}
+})
+
+router.get('/user/:user_id', authenticate, async (req, res) => {
+	try {
+		const posts = await Post.find({ _creator: req.params.user_id })
 
 		res.status(200).json(posts)
 	} catch (err) {
