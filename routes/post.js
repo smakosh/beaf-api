@@ -37,8 +37,8 @@ router.get('/personal', authenticate, async (_req, res) => {
 
 router.get('/all', authenticate, async (_req, res) => {
 	try {
-		const posts = await Post.find()
-
+		const unorderedPosts = await Post.find()
+		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
 		res.status(200).json(posts)
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' })
@@ -47,8 +47,8 @@ router.get('/all', authenticate, async (_req, res) => {
 
 router.get('/user/:user_id', authenticate, async (req, res) => {
 	try {
-		const posts = await Post.find({ _creator: req.params.user_id })
-
+		const unorderedPosts = await Post.find({ _creator: req.params.user_id })
+		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
 		res.status(200).json(posts)
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' })
@@ -139,7 +139,6 @@ router.patch('/vote/before/:id', authenticate, async (req, res) => {
 
 		res.status(200).json(updated)
 	} catch (err) {
-		console.log(err)
 		res.status(400).send({ error: 'Something went wrong' })
 	}
 })
