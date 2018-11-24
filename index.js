@@ -31,6 +31,6 @@ app.use('/api/user', user)
 app.use('/api/post', post)
 // app.use('/api/profile', profile)
 
-const port = process.env.PORT || 80
+const port = process.env.PORT || 5000
 
 app.listen(port, () => console.log(`Listening to requests on port: ${port}`))
