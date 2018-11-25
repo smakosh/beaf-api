@@ -25,7 +25,7 @@ router.get('/verify', authenticate, async (_req, res) => {
 	}
 })
 
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', async (req, res) => {
 	try {
 		const profile = await User.findById(req.params.id)
 		res.json(profile)

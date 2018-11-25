@@ -35,7 +35,7 @@ router.get('/personal', authenticate, async (_req, res) => {
 })
 
 
-router.get('/all', authenticate, async (_req, res) => {
+router.get('/all', async (_req, res) => {
 	try {
 		const unorderedPosts = await Post.find()
 		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -45,7 +45,7 @@ router.get('/all', authenticate, async (_req, res) => {
 	}
 })
 
-router.get('/user/:user_id', authenticate, async (req, res) => {
+router.get('/user/:user_id', async (req, res) => {
 	try {
 		const unorderedPosts = await Post.find({ _creator: req.params.user_id })
 		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
