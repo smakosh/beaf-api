@@ -24,6 +24,7 @@ const Post = mongoose.model('Post', {
 		type: Date,
 		default: Date.now()
 	},
+	comments: [],
 	_creator: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true

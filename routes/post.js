@@ -173,4 +173,24 @@ router.patch('/vote/after/:id', authenticate, async (req, res) => {
 	}
 })
 
+router.post('/post/comment/:id', authenticate, async (req, res) => {
+	try {
+		const { id } = req.params
+		const { comment } = req.body
+
+		const post = await Post.findById(id)
+		const newComment = {
+			creator_id: res.user._id,
+			creator_username: res.user.username,
+			comment,
+			date: Date.now()
+		}
+		post.comments.unshift(newComment)
+		const resPost = await post.save()
+		res.json(resPost)
+	} catch (err) {
+		res.status(404).json({ error: 'Something went wrong' })
+	}
+})
+
 module.exports = router
