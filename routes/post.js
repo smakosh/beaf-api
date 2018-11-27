@@ -1,4 +1,5 @@
 const express = require('express')
+const uuidv1 = require('uuid/v1')
 const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 const { authenticate } = require('../middleware/authenticate')
@@ -55,7 +56,7 @@ router.get('/user/:user_id', async (req, res) => {
 	}
 })
 
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', async (req, res) => {
 	try {
 		const { id } = req.params
 
@@ -63,7 +64,7 @@ router.get('/:id', authenticate, async (req, res) => {
 			return res.status(404).json({ error: 'Invalid ID' })
 		}
 
-		const post = await Post.findOne({ _id: id, _creator: res.user._id })
+		const post = await Post.findOne({ _id: id })
 		res.status(200).json(post)
 	} catch (err) {
 		res.status(400).json({ error: 'Unable to find that post' })
@@ -173,19 +174,23 @@ router.patch('/vote/after/:id', authenticate, async (req, res) => {
 	}
 })
 
-router.post('/post/comment/:id', authenticate, async (req, res) => {
+router.post('/comment/:id', authenticate, async (req, res) => {
 	try {
 		const { id } = req.params
 		const { comment } = req.body
 
 		const post = await Post.findById(id)
+		const today = new Date()
 		const newComment = {
+			_id: uuidv1(),
 			creator_id: res.user._id,
 			creator_username: res.user.username,
 			comment,
-			date: Date.now()
+			date: today.toISOString()
 		}
-		post.comments.unshift(newComment)
+
+		await post.comments.unshift(newComment)
+
 		const resPost = await post.save()
 		res.json(resPost)
 	} catch (err) {
