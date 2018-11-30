@@ -1,5 +1,4 @@
 const express = require('express')
-const uuidv1 = require('uuid/v1')
 const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 const { authenticate } = require('../middleware/authenticate')
@@ -177,12 +176,12 @@ router.patch('/vote/after/:id', authenticate, async (req, res) => {
 router.post('/comment/:id', authenticate, async (req, res) => {
 	try {
 		const { id } = req.params
-		const { comment } = req.body
+		const { comment, generatedID } = req.body
 
 		const post = await Post.findById(id)
 		const today = new Date()
 		const newComment = {
-			_id: uuidv1(),
+			_id: generatedID,
 			creator_id: res.user._id,
 			creator_username: res.user.username,
 			comment,
@@ -190,9 +189,24 @@ router.post('/comment/:id', authenticate, async (req, res) => {
 		}
 
 		await post.comments.unshift(newComment)
+		await post.save()
+		res.json(newComment)
+	} catch (err) {
+		res.status(404).json({ error: 'Something went wrong' })
+	}
+})
 
-		const resPost = await post.save()
-		res.json(resPost)
+router.delete('/comment/:post_id/:comment_id', authenticate, async (req, res) => {
+	try {
+		const { post_id, comment_id } = req.params
+		const post = await Post.findById(post_id)
+		const removeIndex = post.comments
+			.map(item => item._id.toString())
+			.indexOf(comment_id)
+
+		await post.comments.splice(removeIndex, 1)
+		post.save()
+		res.json({ message: 'Comment has been deleted', post: comment_id })
 	} catch (err) {
 		res.status(404).json({ error: 'Something went wrong' })
 	}

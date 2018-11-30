@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
 	},
 	type: {
 		type: String,
-		default: 'admin',
+		default: 'user',
 		required: true
 	},
 	email: {
