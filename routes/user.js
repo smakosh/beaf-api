@@ -25,6 +25,19 @@ router.get('/verify', authenticate, async (_req, res) => {
 	}
 })
 
+router.get('/users/all', authenticate, async (_req, res) => {
+	try {
+		if (res.user.type === 'admin') {
+			const users = await User.find()
+			res.status(200).json(users)
+		} else {
+			res.status(404).json({ error: 'Unauthorized' })
+		}
+	} catch (err) {
+		res.status(404).json({ error: 'Unauthorized' })
+	}
+})
+
 router.get('/:id', async (req, res) => {
 	try {
 		const profile = await User.findById(req.params.id)
@@ -33,6 +46,7 @@ router.get('/:id', async (req, res) => {
 		res.status(404).json({ error: 'could not find that user' })
 	}
 })
+
 
 router.post('/login', async (req, res) => {
 	try {
