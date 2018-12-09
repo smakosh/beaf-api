@@ -23,7 +23,7 @@ const Post = mongoose.model('Post', {
 	after_votes: [],
 	date: {
 		type: Date,
-		default: moment()
+		default: moment().utc()
 	},
 	comments: [],
 	_creator: {
