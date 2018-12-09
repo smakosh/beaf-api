@@ -5,5 +5,6 @@ if (!process.env.NODE_ENV) {
 module.exports = {
 	DB: process.env.DB,
 	secret_key: process.env.SECRET_KEY,
-	allowed_url: process.env.REACT_APP_URL
+	allowed_url: process.env.REACT_APP_URL,
+	landing_page: process.env.LANDING_PAGE
 }

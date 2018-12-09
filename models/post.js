@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const moment = require('moment')
 
 const Post = mongoose.model('Post', {
 	title: {
@@ -22,7 +23,7 @@ const Post = mongoose.model('Post', {
 	after_votes: [],
 	date: {
 		type: Date,
-		default: Date.now()
+		default: moment()
 	},
 	comments: [],
 	_creator: {
