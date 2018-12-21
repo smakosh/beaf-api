@@ -11,6 +11,11 @@ const Post = mongoose.model('Post', {
 		required: true,
 		trim: true
 	},
+	category: {
+		type: String,
+		required: true,
+		default: 'entertainment'
+	},
 	before_img: {
 		type: String,
 		required: true

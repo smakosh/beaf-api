@@ -13,6 +13,7 @@ router.post('/', authenticate, async (req, res) => {
 			description: req.body.description,
 			before_img: req.body.before_img,
 			after_img: req.body.after_img,
+			category: req.body.category,
 			_creator: res.user._id,
 			_creator_username: res.user.username
 		})
