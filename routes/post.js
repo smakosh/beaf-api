@@ -6,8 +6,29 @@ const { Post } = require('../models/post')
 
 const router = express.Router()
 
+const categories = [
+	'entertainment',
+	'sports',
+	'politics',
+	'gaming',
+	'movies',
+	'memes',
+	'automotive',
+	'fashion',
+	'food',
+	'tech',
+	'science',
+	'animals',
+	'photography',
+	'travel'
+]
+
 router.post('/', authenticate, async (req, res) => {
 	try {
+		if (!categories.includes(req.body.category)) {
+			return res.status(401).send({ error: 'Invalid category' })
+		}
+
 		const post = new Post({
 			title: req.body.title,
 			description: req.body.description,
@@ -21,7 +42,7 @@ router.post('/', authenticate, async (req, res) => {
 
 		res.status(200).json(doc)
 	} catch (err) {
-		res.status(400).send({ error: 'Something went wrong' })
+		res.status(400).send({ error: 'Couldn\'t create a new post!' })
 	}
 })
 
@@ -43,6 +64,22 @@ router.get('/all', async (_req, res) => {
 		res.status(200).json(posts)
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' })
+	}
+})
+
+router.get('/category/:category', async (req, res) => {
+	try {
+		const { category } = req.params
+
+		if (!categories.includes(category)) {
+			return res.status(401).send({ error: 'Invalid category' })
+		}
+
+		const unorderedPosts = await Post.find({ category })
+		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+		res.status(200).json(posts)
+	} catch (err) {
+		res.status(400).json({ error: 'that category has no posts yet' })
 	}
 })
 
