@@ -27,6 +27,10 @@ const UserSchema = new mongoose.Schema({
 		trim: true,
 		unique: true
 	},
+	avatar: {
+		type: String,
+		default: 'https://res.cloudinary.com/dj8equdxc/image/upload/v1545631718/beaf/anonym.png'
+	},
 	type: {
 		type: String,
 		default: 'user',
@@ -41,6 +45,10 @@ const UserSchema = new mongoose.Schema({
 			validator: validator.isEmail,
 			message: '{VALUE} is not a valid email'
 		}
+	},
+	bio: {
+		type: String,
+		default: '404 Bio not found!'
 	},
 	isVerified: {
 		type: Boolean,
@@ -67,7 +75,7 @@ UserSchema.methods.toJSON = function () {
 	const user = this
 	const userObject = user.toObject()
 
-	return _.pick(userObject, ['_id', 'firstName', 'lastName', 'username', 'email', 'type', 'isVerified'])
+	return _.pick(userObject, ['_id', 'firstName', 'lastName', 'username', 'email', 'type', 'isVerified', 'avatar', 'bio'])
 }
 
 UserSchema.methods.generateAuthToken = async function () {

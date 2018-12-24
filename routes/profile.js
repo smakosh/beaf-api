@@ -7,7 +7,7 @@ const router = express.Router()
 
 router.get('/', authenticate, async (_req, res) => {
 	try {
-		const profile = await Profile.findOne({ user: res.user._id }).populate('user', ['firstName', 'lastName', 'username', 'type'])
+		const profile = await Profile.findOne({ user: res.user._id }).populate('user', ['firstName', 'lastName', 'username', 'type', 'isVerified', 'avatar', 'bio'])
 		if (!profile) {
 			const error = 'There is no profile for this user'
 			return res.status(404).json({ error })
