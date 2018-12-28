@@ -63,7 +63,7 @@ router.get('/all', async (_req, res) => {
 		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
 		res.status(200).json(posts)
 	} catch (err) {
-		res.status(400).json({ error: 'This user has no posts added' })
+		res.status(400).json({ error: 'No posts are available' })
 	}
 })
 
