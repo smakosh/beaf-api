@@ -3,6 +3,7 @@ const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 const { authenticate } = require('../middleware/authenticate')
 const { Post } = require('../models/post')
+const { User } = require('../models/user')
 
 const router = express.Router()
 
@@ -36,7 +37,8 @@ router.post('/', authenticate, async (req, res) => {
 			after_img: req.body.after_img,
 			category: req.body.category,
 			_creator: res.user._id,
-			_creator_username: res.user.username
+			_creator_username: res.user.username,
+			private: req.body.private
 		})
 		const doc = await post.save()
 
@@ -57,11 +59,28 @@ router.get('/personal', authenticate, async (_req, res) => {
 })
 
 
-router.get('/all', async (_req, res) => {
+router.get('/all', async (req, res) => {
 	try {
-		const unorderedPosts = await Post.find()
-		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
-		res.status(200).json(posts)
+		const token = req.header('x-auth')
+
+		if (token) {
+			try {
+				const user = await User.findByToken(token)
+				if (user) {
+					const unorderedPosts = await Post.find()
+					const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+					res.status(200).json(posts)
+				} else {
+					res.status(404).json({ error: 'Unauthorized' })
+				}
+			} catch (err) {
+				res.status(404).json({ error: 'Unauthorized' })
+			}
+		} else {
+			const unorderedPosts = await Post.find({ private: false })
+			const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+			res.status(200).json(posts)
+		}
 	} catch (err) {
 		res.status(400).json({ error: 'No posts are available' })
 	}
