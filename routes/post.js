@@ -89,14 +89,30 @@ router.get('/all', async (req, res) => {
 router.get('/category/:category', async (req, res) => {
 	try {
 		const { category } = req.params
+		const token = req.header('x-auth')
 
 		if (!categories.includes(category)) {
 			return res.status(401).send({ error: 'Invalid category' })
 		}
 
-		const unorderedPosts = await Post.find({ category })
-		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
-		res.status(200).json(posts)
+		if (token) {
+			try {
+				const user = await User.findByToken(token)
+				if (user) {
+					const unorderedPosts = await Post.find({ category })
+					const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+					res.status(200).json(posts)
+				} else {
+					res.status(404).json({ error: 'Unauthorized' })
+				}
+			} catch (err) {
+				res.status(404).json({ error: 'Unauthorized' })
+			}
+		} else {
+			const unorderedPosts = await Post.find({ category, private: false })
+			const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+			res.status(200).json(posts)
+		}
 	} catch (err) {
 		res.status(400).json({ error: 'that category has no posts yet' })
 	}
