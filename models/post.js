@@ -38,6 +38,11 @@ const Post = mongoose.model('Post', {
 	_creator_username: {
 		type: String,
 		required: true
+	},
+	private: {
+		type: Boolean,
+		required: true,
+		default: false
 	}
 })
 
