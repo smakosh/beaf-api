@@ -48,9 +48,10 @@ router.post('/', authenticate, async (req, res) => {
 	}
 })
 
-router.get('/personal', authenticate, async (_req, res) => {
+router.post('/personal', authenticate, async (_req, res) => {
 	try {
-		const posts = await Post.find({ _creator: res.user._id })
+		const unorderedPosts = await Post.find({ _creator: res.user._id })
+		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
 
 		res.status(200).json(posts)
 	} catch (err) {
@@ -59,7 +60,7 @@ router.get('/personal', authenticate, async (_req, res) => {
 })
 
 
-router.get('/all', async (req, res) => {
+router.post('/all', async (req, res) => {
 	try {
 		const token = req.header('x-auth')
 
@@ -86,7 +87,7 @@ router.get('/all', async (req, res) => {
 	}
 })
 
-router.get('/category/:category', async (req, res) => {
+router.post('/category/:category', async (req, res) => {
 	try {
 		const { category } = req.params
 		const token = req.header('x-auth')
@@ -118,7 +119,7 @@ router.get('/category/:category', async (req, res) => {
 	}
 })
 
-router.get('/user/:user_id', async (req, res) => {
+router.post('/user/:user_id', async (req, res) => {
 	try {
 		const unorderedPosts = await Post.find({ _creator: req.params.user_id })
 		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -128,7 +129,7 @@ router.get('/user/:user_id', async (req, res) => {
 	}
 })
 
-router.get('/:id', async (req, res) => {
+router.post('/:id', async (req, res) => {
 	try {
 		const { id } = req.params
 
