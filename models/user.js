@@ -4,6 +4,7 @@ const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
 const bcrypt = require('bcryptjs')
+const moment = require('moment')
 const { secret_key } = require('../config/config')
 
 const UserSchema = new mongoose.Schema({
@@ -50,14 +51,42 @@ const UserSchema = new mongoose.Schema({
 		type: String,
 		default: '404 Bio not found!'
 	},
+	hasEmailVerified: {
+		type: Boolean,
+		default: false
+	},
 	isVerified: {
 		type: Boolean,
 		default: false
 	},
+	following: [{
+		user: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		},
+		date: {
+			type: Date,
+			default: moment().utc()
+		},
+	}],
+	followers: [{
+		user: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		},
+		date: {
+			type: Date,
+			default: moment().utc()
+		},
+	}],
 	password: {
 		type: String,
 		required: true,
 		minlength: 6
+	},
+	joined: {
+		type: Date,
+		default: moment().utc()
 	},
 	tokens: [{
 		access: {
@@ -75,7 +104,13 @@ UserSchema.methods.toJSON = function () {
 	const user = this
 	const userObject = user.toObject()
 
-	return _.pick(userObject, ['_id', 'firstName', 'lastName', 'username', 'email', 'type', 'isVerified', 'avatar', 'bio'])
+	return _.pick(userObject, [
+		'_id', 'firstName', 'lastName',
+		'username', 'email', 'type',
+		'isVerified', 'avatar', 'bio',
+		'followers', 'following', 'hasEmailVerified',
+		'joined'
+	])
 }
 
 UserSchema.methods.generateAuthToken = async function () {
