@@ -38,7 +38,7 @@ router.post('/users/all', async (req, res) => {
 			following: 1,
 			followers: 1
 		}
-		const options = { skip: 10, limit: 10, count: 5 }
+		const options = { skip: 10, limit: 5, count: 5 }
 		if (token) {
 			try {
 				const user = await User.findByToken(token)
