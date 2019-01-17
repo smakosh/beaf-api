@@ -50,9 +50,7 @@ router.post('/', authenticate, async (req, res) => {
 
 router.post('/personal', authenticate, async (_req, res) => {
 	try {
-		const unorderedPosts = await Post.find({ _creator: res.user._id })
-		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
-
+		const posts = await Post.find({ _creator: res.user._id }).sort({ date: -1 })
 		res.status(200).json(posts)
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' })
@@ -68,8 +66,7 @@ router.post('/all', async (req, res) => {
 			try {
 				const user = await User.findByToken(token)
 				if (user) {
-					const unorderedPosts = await Post.find()
-					const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+					const posts = await Post.find().sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
 					res.status(404).json({ error: 'Unauthorized' })
@@ -78,8 +75,7 @@ router.post('/all', async (req, res) => {
 				res.status(404).json({ error: 'Unauthorized' })
 			}
 		} else {
-			const unorderedPosts = await Post.find({ private: false })
-			const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+			const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
 			res.status(200).json(posts)
 		}
 	} catch (err) {
@@ -100,8 +96,7 @@ router.post('/category/:category', async (req, res) => {
 			try {
 				const user = await User.findByToken(token)
 				if (user) {
-					const unorderedPosts = await Post.find({ category })
-					const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+					const posts = await Post.find({ category }).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
 					res.status(404).json({ error: 'Unauthorized' })
@@ -110,8 +105,7 @@ router.post('/category/:category', async (req, res) => {
 				res.status(404).json({ error: 'Unauthorized' })
 			}
 		} else {
-			const unorderedPosts = await Post.find({ category, private: false })
-			const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
+			const posts = await Post.find({ category, private: false }).sort({ date: -1 }).limit(20)
 			res.status(200).json(posts)
 		}
 	} catch (err) {
@@ -121,9 +115,26 @@ router.post('/category/:category', async (req, res) => {
 
 router.post('/user/:user_id', async (req, res) => {
 	try {
-		const unorderedPosts = await Post.find({ _creator: req.params.user_id })
-		const posts = await unorderedPosts.sort((a, b) => (a.date < b.date ? 1 : -1))
-		res.status(200).json(posts)
+		const token = req.header('x-auth')
+
+		if (token) {
+			try {
+				const user = await User.findByToken(token)
+				if (user) {
+					const posts = await Post.find({ _creator: req.params.user_id })
+						.sort({ date: -1 }).limit(20)
+					res.status(200).json(posts)
+				} else {
+					res.status(404).json({ error: 'Unauthorized' })
+				}
+			} catch (err) {
+				res.status(404).json({ error: 'Unauthorized' })
+			}
+		} else {
+			const posts = await Post.find({ _creator: req.params.user_id, private: false })
+				.sort({ date: -1 }).limit(20)
+			res.status(200).json(posts)
+		}
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' })
 	}

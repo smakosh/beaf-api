@@ -26,14 +26,46 @@ router.get('/verify', authenticate, async (_req, res) => {
 	}
 })
 
-router.post('/users/all', authenticate, async (_req, res) => {
+router.post('/users/all', async (req, res) => {
 	try {
-		if (res.user.type === 'admin') {
-			const users = await User.find()
-			res.status(200).json(users)
+		const token = req.header('x-auth')
+		const fields = {
+			firstName: 1,
+			lastName: 1,
+			username: 1,
+			avatar: 1,
+			isVerified: 1,
+			following: 1,
+			followers: 1
+		}
+		const options = { skip: 10, limit: 10, count: 5 }
+		if (token) {
+			try {
+				const user = await User.findByToken(token)
+				if (user) {
+					const filter = { _id: { $ne: user._id } }
+					if (user.type === 'admin') {
+						await User.findRandom(filter, fields, options, (err, users) => {
+							if (err) throw new Error(err)
+							res.status(200).json(users)
+						})
+					} else {
+						await User.findRandom(filter, fields, options, (err, users) => {
+							if (err) throw new Error(err)
+							res.status(200).json(users)
+						})
+					}
+				} else {
+					res.status(404).json({ error: 'Unauthorized User' })
+				}
+			} catch (err) {
+				res.status(404).json({ error: 'User not Found' })
+			}
 		} else {
-			const users = await User.find({ _id: !res.user._id })
-			res.status(200).json(users)
+			await User.findRandom({}, fields, options, (err, users) => {
+				if (err) throw new Error(err)
+				res.status(200).json(users)
+			})
 		}
 	} catch (err) {
 		res.status(404).json({ error: 'Unauthorized' })

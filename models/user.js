@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
 const validator = require('validator')
+const random = require('mongoose-simple-random')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
 const bcrypt = require('bcryptjs')
@@ -187,6 +188,8 @@ UserSchema.pre('save', function (next) {
 })
 
 UserSchema.plugin(uniqueValidator, { message: 'Error, expected {PATH} to be unique.' })
+
+UserSchema.plugin(random)
 
 const User = mongoose.model('User', UserSchema)
 
