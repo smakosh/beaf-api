@@ -69,10 +69,12 @@ router.post('/all', async (req, res) => {
 					const posts = await Post.find().sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
-					res.status(404).json({ error: 'Unauthorized' })
+					const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
+					res.status(200).json(posts)
 				}
 			} catch (err) {
-				res.status(404).json({ error: 'Unauthorized' })
+				const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
+				res.status(200).json(posts)
 			}
 		} else {
 			const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
@@ -99,10 +101,12 @@ router.post('/category/:category', async (req, res) => {
 					const posts = await Post.find({ category }).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
-					res.status(404).json({ error: 'Unauthorized' })
+					const posts = await Post.find({ category, private: false }).sort({ date: -1 }).limit(20)
+					res.status(200).json(posts)
 				}
 			} catch (err) {
-				res.status(404).json({ error: 'Unauthorized' })
+				const posts = await Post.find({ category, private: false }).sort({ date: -1 }).limit(20)
+				res.status(200).json(posts)
 			}
 		} else {
 			const posts = await Post.find({ category, private: false }).sort({ date: -1 }).limit(20)

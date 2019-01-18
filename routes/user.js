@@ -56,10 +56,16 @@ router.post('/users/all', async (req, res) => {
 						})
 					}
 				} else {
-					res.status(404).json({ error: 'Unauthorized User' })
+					await User.findRandom({}, fields, options, (err, users) => {
+						if (err) throw new Error(err)
+						res.status(200).json(users)
+					})
 				}
 			} catch (err) {
-				res.status(404).json({ error: 'User not Found' })
+				await User.findRandom({}, fields, options, (err, users) => {
+					if (err) throw new Error(err)
+					res.status(200).json(users)
+				})
 			}
 		} else {
 			await User.findRandom({}, fields, options, (err, users) => {
