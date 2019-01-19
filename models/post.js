@@ -8,7 +8,6 @@ const Post = mongoose.model('Post', {
 	},
 	description: {
 		type: String,
-		required: true,
 		trim: true
 	},
 	category: {
