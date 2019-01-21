@@ -212,12 +212,12 @@ router.patch('/vote/before/:id', authenticate, async (req, res) => {
 
 		const query = {
 			_id: id,
-			before_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } },
-			after_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } }
+			before_votes: { $not: { $elemMatch: {  $eq: res.user._id } } },
+			after_votes: { $not: { $elemMatch: {  $eq: res.user._id } } }
 		}
 
 		const update = {
-			$addToSet: { before_votes: req.body.user_id }
+			$addToSet: { before_votes: res.user._id }
 		}
 
 		const updated = await Post.updateOne(query, update)
@@ -242,12 +242,12 @@ router.patch('/vote/after/:id', authenticate, async (req, res) => {
 
 		const query = {
 			_id: id,
-			after_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } },
-			before_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } }
+			after_votes: { $not: { $elemMatch: {  $eq: res.user._id } } },
+			before_votes: { $not: { $elemMatch: {  $eq: res.user._id } } }
 		}
 
 		const update = {
-			$addToSet: { after_votes: req.body.user_id }
+			$addToSet: { after_votes: res.user._id }
 		}
 
 		const updated = await Post.updateOne(query, update)

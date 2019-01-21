@@ -32,6 +32,7 @@ const Post = mongoose.model('Post', {
 	comments: [],
 	_creator: {
 		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
 		required: true
 	},
 	_creator_username: {

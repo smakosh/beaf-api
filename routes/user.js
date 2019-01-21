@@ -38,7 +38,20 @@ router.post('/users/all', async (req, res) => {
 			following: 1,
 			followers: 1
 		}
-		const options = { skip: 10, limit: 5, count: 5 }
+		const options = {
+			skip: 10,
+			limit: 5,
+			count: 5,
+			populate: [{
+				path: 'followers',
+				select: '_id avatar firstName lastName username followers following isVerified',
+				options: { limit: 30 }
+			}, {
+				path: 'following',
+				select: '_id avatar firstName lastName username followers following isVerified',
+				options: { limit: 30 }
+			}]
+		}
 		if (token) {
 			try {
 				const user = await User.findByToken(token)
@@ -98,9 +111,17 @@ router.delete('/logout', authenticate, async (_req, res) => {
 	}
 })
 
-router.get('/:id', async (req, res) => {
+router.post('/:id', async (req, res) => {
 	try {
-		const profile = await User.findById(req.params.id)
+		const profile = await User.findById(req.params.id).populate({
+			path: 'followers',
+			select: '_id avatar firstName lastName username followers following isVerified',
+			options: { limit: 30 }
+		}).populate({
+			path: 'following',
+			select: '_id avatar firstName lastName username followers following isVerified',
+			options: { limit: 30 }
+		})
 		res.status(200).json(profile)
 	} catch (err) {
 		res.status(404).json({ error: 'could not find that user' })
@@ -126,15 +147,15 @@ router.patch('/edit', authenticate, async (req, res) => {
 
 router.patch('/follow/:id', authenticate, async (req, res) => {
 	try {
-		const { id } = req.params
+		const id = new ObjectID(req.params.id)
 
 		// check if the id is a valid one
-		if (!ObjectID.isValid(id)) {
+		if (!ObjectID.isValid(req.params.id)) {
 			return res.status(404).json({ error: 'Invalid ID' })
 		}
 
 		// check if your id doesn't match the id of the use you want to follow
-		if (res.user._id === id) {
+		if (res.user._id === req.params.id) {
 			return res.status(400).json({ error: 'You cannot follow yourself' })
 		}
 
@@ -166,11 +187,9 @@ router.patch('/follow/:id', authenticate, async (req, res) => {
 			return res.status(404).json({ error: 'Unable to follow that user' })
 		}
 
-		const success = [...update, ...secondUpdated]
-
-		res.status(200).json(success)
+		res.status(200).json(update)
 	} catch (err) {
-		res.status(400).send({ error: 'Something went wrong' })
+		res.status(400).send({ error: err.message })
 	}
 })
 
@@ -216,11 +235,9 @@ router.patch('/unfollow/:id', authenticate, async (req, res) => {
 			return res.status(404).json({ error: 'Unable to unfollow that user' })
 		}
 
-		const success = [...update, ...secondUpdated]
-
-		res.status(200).json(success)
+		res.status(200).json(update)
 	} catch (err) {
-		res.status(400).send({ error: 'Something went wrong' })
+		res.status(400).send({ error: err.message })
 	}
 })
 
