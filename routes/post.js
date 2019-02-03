@@ -69,7 +69,7 @@ router.post('/all', async (req, res) => {
 					// get following posts
 					const posts = await Post.find({
 						_creator: {
-							$in: [user._id, user.following]
+							$in: [user._id, ...user.following]
 						}
 					}).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
