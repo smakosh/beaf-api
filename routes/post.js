@@ -66,7 +66,12 @@ router.post('/all', async (req, res) => {
 			try {
 				const user = await User.findByToken(token)
 				if (user) {
-					const posts = await Post.find().sort({ date: -1 }).limit(20)
+					// get following posts
+					const posts = await Post.find({
+						_creator: {
+							$in: [user._id, user.following]
+						}
+					}).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
 					const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
