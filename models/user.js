@@ -61,24 +61,12 @@ const UserSchema = new mongoose.Schema({
 		default: false
 	},
 	following: [{
-		user: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'User'
-		},
-		date: {
-			type: Date,
-			default: moment().utc()
-		},
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User'
 	}],
 	followers: [{
-		user: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'User'
-		},
-		date: {
-			type: Date,
-			default: moment().utc()
-		},
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User'
 	}],
 	password: {
 		type: String,

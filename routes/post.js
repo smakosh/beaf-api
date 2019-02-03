@@ -66,7 +66,12 @@ router.post('/all', async (req, res) => {
 			try {
 				const user = await User.findByToken(token)
 				if (user) {
-					const posts = await Post.find().sort({ date: -1 }).limit(20)
+					// get following posts
+					const posts = await Post.find({
+						_creator: {
+							$in: [user._id, user.following]
+						}
+					}).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
 					const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
@@ -212,12 +217,12 @@ router.patch('/vote/before/:id', authenticate, async (req, res) => {
 
 		const query = {
 			_id: id,
-			before_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } },
-			after_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } }
+			before_votes: { $not: { $elemMatch: {  $eq: res.user._id } } },
+			after_votes: { $not: { $elemMatch: {  $eq: res.user._id } } }
 		}
 
 		const update = {
-			$addToSet: { before_votes: req.body.user_id }
+			$addToSet: { before_votes: res.user._id }
 		}
 
 		const updated = await Post.updateOne(query, update)
@@ -242,12 +247,12 @@ router.patch('/vote/after/:id', authenticate, async (req, res) => {
 
 		const query = {
 			_id: id,
-			after_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } },
-			before_votes: { $not: { $elemMatch: { $eq: req.body.user_id } } }
+			after_votes: { $not: { $elemMatch: {  $eq: res.user._id } } },
+			before_votes: { $not: { $elemMatch: {  $eq: res.user._id } } }
 		}
 
 		const update = {
-			$addToSet: { after_votes: req.body.user_id }
+			$addToSet: { after_votes: res.user._id }
 		}
 
 		const updated = await Post.updateOne(query, update)
