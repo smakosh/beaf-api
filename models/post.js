@@ -43,6 +43,10 @@ const Post = mongoose.model('Post', {
 		type: Boolean,
 		required: true,
 		default: false
+	},
+	unbiased: {
+		type: Boolean,
+		default: false
 	}
 })
 

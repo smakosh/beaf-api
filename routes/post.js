@@ -38,7 +38,8 @@ router.post('/', authenticate, async (req, res) => {
 			category: req.body.category,
 			_creator: res.user._id,
 			_creator_username: res.user.username,
-			private: req.body.private
+			private: req.body.private,
+			unbiased: req.body.unbiased
 		})
 		const doc = await post.save()
 
@@ -74,15 +75,15 @@ router.post('/all', async (req, res) => {
 					}).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
-					const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
+					const posts = await Post.find({ private: false, unbiased: false }).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				}
 			} catch (err) {
-				const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
+				const posts = await Post.find({ private: false, unbiased: false }).sort({ date: -1 }).limit(20)
 				res.status(200).json(posts)
 			}
 		} else {
-			const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
+			const posts = await Post.find({ private: false, unbiased: false }).sort({ date: -1 }).limit(20)
 			res.status(200).json(posts)
 		}
 	} catch (err) {
