@@ -75,15 +75,15 @@ router.post('/all', async (req, res) => {
 					}).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				} else {
-					const posts = await Post.find({ private: false, unbiased: false }).sort({ date: -1 }).limit(20)
+					const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
 					res.status(200).json(posts)
 				}
 			} catch (err) {
-				const posts = await Post.find({ private: false, unbiased: false }).sort({ date: -1 }).limit(20)
+				const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
 				res.status(200).json(posts)
 			}
 		} else {
-			const posts = await Post.find({ private: false, unbiased: false }).sort({ date: -1 }).limit(20)
+			const posts = await Post.find({ private: false }).sort({ date: -1 }).limit(20)
 			res.status(200).json(posts)
 		}
 	} catch (err) {
