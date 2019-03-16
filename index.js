@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 const user = require('./routes/user')
 // const profile = require('./routes/profile')
 const post = require('./routes/post')
-const { DB, allowed_url } = require('./config/config.js')
+const { DB, allowed_url } = require('./config/config')
 
 const app = express()
 
