@@ -1,5 +1,4 @@
 const express = require('express')
-const _ = require('lodash')
 const { ObjectID } = require('mongodb')
 const { authenticate } = require('../middleware/authenticate')
 const { Post } = require('../models/post')
@@ -188,7 +187,12 @@ router.delete('/:id', authenticate, async (req, res) => {
 router.patch('/:id', authenticate, async (req, res) => {
 	try {
 		const { id } = req.params
-		const body = _.pick(req.body, ['title', 'description', 'before_img', 'after_img'])
+		const body = {
+			title: req.body.title,
+			description: req.body.description,
+			before_img: req.body.before_img,
+			after_img: req.body.after_img,
+		}
 
 		if (!ObjectID.isValid(id)) {
 			return res.status(404).json({ error: 'Invalid ID' })

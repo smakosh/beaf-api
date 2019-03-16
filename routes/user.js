@@ -1,17 +1,45 @@
 const express = require('express')
-const _ = require('lodash')
+const bcrypt = require('bcryptjs')
+const sgMail = require('@sendgrid/mail')
 const { ObjectID } = require('mongodb')
 const { authenticate } = require('../middleware/authenticate')
 const { User } = require('../models/user')
+const { sendGrid_key } = require('../config/config')
 
 const router = express.Router()
 
 router.post('/register', async (req, res) => {
 	try {
-		const body = _.pick(req.body, ['username', 'email', 'password', 'firstName', 'lastName'])
-		const user = new User(body)
+		const {
+			username,
+			email,
+			password,
+			firstName,
+			lastName
+		} = req.body
+		const user = new User({
+			username,
+			email,
+			password,
+			firstName,
+			lastName
+		})
+
 		await user.save()
+
 		const token = await user.generateAuthToken()
+
+		sgMail.setApiKey(sendGrid_key)
+		const msg = {
+			to: email,
+			from: 'beafapp@gmail.com',
+			subject: 'Welcome to Beaf!',
+			text: 'We are glad to have you joined Beaf, please verify your email',
+			html: `<div>We are glad to have you join Beaf! Please verify your email by clicking <a href="https://app.beafapp.com/email/confirm?token=${token}" target="__blank">this link</a>.<br /> Or paste this link into your browser: https://app.beafapp.com/email/confirm/?token=${token}</div>`,
+		}
+
+		sgMail.send(msg)
+
 		res.status(200).json({ user, token })
 	} catch (err) {
 		res.status(400).json({ error: 'Something went wrong' })
@@ -23,6 +51,63 @@ router.get('/verify', authenticate, async (_req, res) => {
 		res.status(200).json(res.user)
 	} catch (err) {
 		res.status(404).json({ error: 'could not log you in' })
+	}
+})
+
+router.patch('/email/confirm', authenticate, async (_req, res) => {
+	try {
+		await User.findOneAndUpdate(
+			{ _id: res.user._id },
+			{ $set: { hasEmailVerified: true } },
+			{ new: true }
+		)
+
+		res.status(200).json({ success: true })
+	} catch (err) {
+		res.status(404).json({ error: 'could not verify your email!' })
+	}
+})
+
+router.patch('/reset/password', authenticate, async (req, res) => {
+	try {
+		if (req.body.password !== req.body.confirmPassword) {
+			return res.status(400).json({ error: 'Passwords don\'t match' })
+		}
+
+		const user = await User.findById({ _id: res.user._id })
+		user.password = req.body.password
+		user.save()
+
+		res.status(200).json({ success: true })
+	} catch (err) {
+		res.status(404).json({ error: 'could not reset your password!' })
+	}
+})
+
+router.post('/forgotten/password', async (req, res) => {
+	try {
+		const user = await User.findOne({ email: req.body.email })
+
+		if (!user) {
+			return res.status(404).json({ error: 'We couldn\'t find an account with that email!' })
+		}
+
+		const token = await user.generateAuthToken()
+
+		sgMail.setApiKey(sendGrid_key)
+		const msg = {
+			to: req.body.email,
+			from: 'beafapp@gmail.com',
+			subject: 'Forgotten password request',
+			text: `Hi ${user.firstName}, Beaf recently received a request for a forgotten password.`,
+			html: `<div>To change your Beaf password, please click on this <a href="https://app.beafapp.com/reset/password?token=${token}" target="__blank">link</a>.<br /> Or paste this link into your browser: https://app.beafapp.com/reset/password/?token=${token}</div>`,
+		}
+
+		sgMail.send(msg)
+
+		res.status(200).json({ success: true })
+	} catch (err) {
+		res.status(404).json({ error: 'Something went wrong' })
 	}
 })
 
@@ -93,8 +178,7 @@ router.post('/users/all', async (req, res) => {
 
 router.post('/login', async (req, res) => {
 	try {
-		const body = _.pick(req.body, ['email', 'password'])
-		const user = await User.findByCredentials(body.email, body.password)
+		const user = await User.findByCredentials(req.body.email, req.body.password)
 		const token = await user.generateAuthToken()
 		res.status(200).json({ user, token })
 	} catch (err) {
