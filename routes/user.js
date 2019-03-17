@@ -46,6 +46,24 @@ router.post('/register', async (req, res) => {
 	}
 })
 
+router.post('/resend/email', authenticate, async (req, res) => {
+	try {
+		sgMail.setApiKey(sendGrid_key)
+		const msg = {
+			to: res.user.email,
+			from: 'beafapp@gmail.com',
+			subject: 'Welcome to Beaf!',
+			text: 'We are glad to have you joined Beaf, please verify your email',
+			html: `<div>We are glad to have you join Beaf! Please verify your email by clicking <a href="https://app.beafapp.com/email/confirm?token=${res.token}" target="__blank">this link</a>.<br /> Or paste this link into your browser: https://app.beafapp.com/email/confirm/?token=${res.token}</div>`,
+		}
+
+		sgMail.send(msg)
+		res.status(200).json({ success: true })
+	} catch (err) {
+		res.status(400).json({ error: 'Something went wrong' })
+	}
+})
+
 router.get('/verify', authenticate, async (_req, res) => {
 	try {
 		res.status(200).json(res.user)
