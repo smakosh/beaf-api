@@ -1,7 +1,8 @@
-const mongoose = require('mongoose')
-const moment = require('moment')
+const mongoose = require('mongoose');
+const moment = require('moment');
+const mongoosePaginate = require('mongoose-paginate');
 
-const Post = mongoose.model('Post', {
+const PostSchema = new mongoose.Schema({
 	title: {
 		type: String,
 		required: true
@@ -48,6 +49,10 @@ const Post = mongoose.model('Post', {
 		type: Boolean,
 		default: false
 	}
-})
+});
 
-module.exports = { Post }
+PostSchema.plugin(mongoosePaginate);
+
+const Post = mongoose.model('Post', PostSchema);
+
+module.exports = { Post };
