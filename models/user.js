@@ -1,12 +1,12 @@
-const mongoose = require('mongoose')
-const uniqueValidator = require('mongoose-unique-validator')
-const validator = require('validator')
-const random = require('mongoose-simple-random')
-const jwt = require('jsonwebtoken')
-const _ = require('lodash')
-const bcrypt = require('bcryptjs')
-const moment = require('moment')
-const { secret_key } = require('../config/config')
+const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+const validator = require('validator');
+const random = require('mongoose-simple-random');
+const jwt = require('jsonwebtoken');
+const _ = require('lodash');
+const bcrypt = require('bcryptjs');
+const moment = require('moment');
+const { secret_key } = require('../config/config');
 
 const UserSchema = new mongoose.Schema({
 	firstName: {
@@ -31,7 +31,8 @@ const UserSchema = new mongoose.Schema({
 	},
 	avatar: {
 		type: String,
-		default: 'https://res.cloudinary.com/dj8equdxc/image/upload/v1545631718/beaf/anonym.png'
+		default:
+      'https://res.cloudinary.com/dj8equdxc/image/upload/v1545631718/beaf/anonym.png'
 	},
 	type: {
 		type: String,
@@ -60,14 +61,18 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
-	following: [{
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
-	}],
-	followers: [{
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User'
-	}],
+	following: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		}
+	],
+	followers: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		}
+	],
 	password: {
 		type: String,
 		required: true,
@@ -75,110 +80,124 @@ const UserSchema = new mongoose.Schema({
 	},
 	joined: {
 		type: Date,
-		default: moment().utc()
+		default: () => moment().utc()
 	},
-	tokens: [{
-		access: {
-			type: String,
-			required: true
-		},
-		token: {
-			type: String,
-			required: true
+	tokens: [
+		{
+			access: {
+				type: String,
+				required: true
+			},
+			token: {
+				type: String,
+				required: true
+			}
 		}
-	}]
-})
+	]
+});
 
 UserSchema.methods.toJSON = function () {
-	const user = this
-	const userObject = user.toObject()
+	const user = this;
+	const userObject = user.toObject();
 
 	return _.pick(userObject, [
-		'_id', 'firstName', 'lastName',
-		'username', 'email', 'type',
-		'isVerified', 'avatar', 'bio',
-		'followers', 'following', 'hasEmailVerified',
+		'_id',
+		'firstName',
+		'lastName',
+		'username',
+		'email',
+		'type',
+		'isVerified',
+		'avatar',
+		'bio',
+		'followers',
+		'following',
+		'hasEmailVerified',
 		'joined'
-	])
-}
+	]);
+};
 
 UserSchema.methods.generateAuthToken = async function () {
-	const user = this
+	const user = this;
 
-	const access = 'auth'
-	const token = jwt.sign({ _id: user._id.toHexString(), access }, secret_key).toString()
+	const access = 'auth';
+	const token = jwt
+		.sign({ _id: user._id.toHexString(), access }, secret_key)
+		.toString();
 
-	user.tokens.push({ access, token })
-	await user.save()
-	return token
-}
+	user.tokens.push({ access, token });
+	await user.save();
+	return token;
+};
 
 UserSchema.statics.findByToken = function (token) {
-	const User = this
-	let decoded
+	const User = this;
+	let decoded;
 
 	try {
-		decoded = jwt.verify(token, secret_key)
+		decoded = jwt.verify(token, secret_key);
 	} catch (err) {
-		return Promise.reject()
+		return Promise.reject();
 	}
 
 	return User.findOne({
 		_id: decoded._id,
 		'tokens.token': token,
 		'tokens.access': 'auth'
-	})
-}
+	});
+};
 
 UserSchema.methods.removeToken = function (token) {
-	const user = this
+	const user = this;
 
 	return user.update({
 		$pull: {
 			tokens: { token }
 		}
-	})
-}
+	});
+};
 
 UserSchema.statics.findByCredentials = function (email, password) {
-	const User = this
+	const User = this;
 
-	return User.findOne({ email }).then((user) => {
+	return User.findOne({ email }).then(user => {
 		if (!user) {
-			return Promise.reject()
+			return Promise.reject();
 		}
 
 		return new Promise((resolve, reject) => {
 			bcrypt.compare(password, user.password, (err, res) => {
 				if (res) {
-					resolve(user)
+					resolve(user);
 				} else {
-					reject()
+					reject();
 				}
-			})
-		})
-	})
-}
+			});
+		});
+	});
+};
 
 UserSchema.pre('save', function (next) {
-	const user = this
+	const user = this;
 
 	if (user.isModified('password')) {
 		bcrypt.genSalt(10, (err, salt) => {
 			bcrypt.hash(user.password, salt, (err, hash) => {
-				user.password = hash
-				next()
-			})
-		})
+				user.password = hash;
+				next();
+			});
+		});
 	} else {
-		next()
+		next();
 	}
-})
+});
 
-UserSchema.plugin(uniqueValidator, { message: 'Error, expected {PATH} to be unique.' })
+UserSchema.plugin(uniqueValidator, {
+	message: 'Error, expected {PATH} to be unique.'
+});
 
-UserSchema.plugin(random)
+UserSchema.plugin(random);
 
-const User = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema);
 
-module.exports = { User }
+module.exports = { User };

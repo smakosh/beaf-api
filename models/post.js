@@ -28,7 +28,7 @@ const PostSchema = new mongoose.Schema({
 	after_votes: [],
 	date: {
 		type: Date,
-		default: moment().utc()
+		default: () => moment().utc()
 	},
 	comments: [],
 	_creator: {

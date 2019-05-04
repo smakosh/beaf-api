@@ -59,46 +59,6 @@ router.post('/personal', authenticate, async (_req, res) => {
 	}
 });
 
-router.post('/all', async (req, res) => {
-	try {
-		const token = req.header('x-auth');
-
-		if (token) {
-			try {
-				const user = await User.findByToken(token);
-				if (user) {
-					// get following posts
-					const posts = await Post.find({
-						_creator: {
-							$in: [user._id, ...user.following]
-						}
-					})
-						.sort({ date: -1 })
-						.limit(20);
-					res.status(200).json(posts);
-				} else {
-					const posts = await Post.find({ private: false })
-						.sort({ date: -1 })
-						.limit(20);
-					res.status(200).json(posts);
-				}
-			} catch (err) {
-				const posts = await Post.find({ private: false })
-					.sort({ date: -1 })
-					.limit(20);
-				res.status(200).json(posts);
-			}
-		} else {
-			const posts = await Post.find({ private: false })
-				.sort({ date: -1 })
-				.limit(20);
-			res.status(200).json(posts);
-		}
-	} catch (err) {
-		res.status(400).json({ error: 'No posts are available' });
-	}
-});
-
 router.post('/all/:page', async (req, res) => {
 	try {
 		const token = req.header('x-auth');
@@ -109,64 +69,65 @@ router.post('/all/:page', async (req, res) => {
 				if (user) {
 					// get following posts
 					const options = {
-						find: {
+						sort: { date: -1 },
+						page: req.params.page,
+						limit: 2
+					};
+					const { docs, pages, page } = await Post.paginate(
+						{
 							_creator: {
 								$in: [user._id, ...user.following]
 							}
 						},
-						sort: { date: -1 },
-						page: req.params.page,
-						limit: 2
-					};
-					const { docs } = await Post.paginate({}, options);
-					res.status(200).json({ posts: docs });
+						options
+					);
+					res.status(200).json({ posts: docs, pages, page });
 				} else {
 					const options = {
-						find: {
-							private: false
-						},
 						sort: { date: -1 },
 						page: req.params.page,
 						limit: 2
 					};
-					const { docs } = await Post.paginate({}, options);
-					res.status(200).json({ posts: docs });
+					const { docs, pages, page } = await Post.paginate(
+						{ private: false },
+						options
+					);
+					res.status(200).json({ posts: docs, pages, page });
 				}
 			} catch (err) {
 				const options = {
-					find: {
-						private: false
-					},
 					sort: { date: -1 },
 					page: req.params.page,
 					limit: 2
 				};
-				const { docs } = await Post.paginate({}, options);
-				res.status(200).json({ posts: docs });
+				const { docs, pages, page } = await Post.paginate(
+					{ private: false },
+					options
+				);
+				res.status(200).json({ posts: docs, pages, page });
 			}
 		} else {
 			const options = {
-				find: {
-					private: false
-				},
 				sort: { date: -1 },
 				page: req.params.page,
 				limit: 2
 			};
-			const { docs } = await Post.paginate({}, options);
-			res.status(200).json({ posts: docs });
+			const { docs, pages, page } = await Post.paginate(
+				{ private: false },
+				options
+			);
+			res.status(200).json({ posts: docs, pages, page });
 		}
 	} catch (err) {
 		res.status(400).json({ error: 'No posts are available' });
 	}
 });
 
-router.post('/category/:category', async (req, res) => {
+router.post('/category/:category/:page', async (req, res) => {
 	try {
-		const { category } = req.params;
 		const token = req.header('x-auth');
 
-		if (!categories.includes(category)) {
+		if (!categories.includes(req.params.category)) {
 			return res.status(401).send({ error: 'Invalid category' });
 		}
 
@@ -174,27 +135,51 @@ router.post('/category/:category', async (req, res) => {
 			try {
 				const user = await User.findByToken(token);
 				if (user) {
-					const posts = await Post.find({ category })
-						.sort({ date: -1 })
-						.limit(20);
-					res.status(200).json(posts);
+					const options = {
+						sort: { date: -1 },
+						page: req.params.page,
+						limit: 2
+					};
+					const { docs, pages, page } = await Post.paginate(
+						{ category: req.params.category },
+						options
+					);
+					res.status(200).json({ posts: docs, pages, page });
 				} else {
-					const posts = await Post.find({ category, private: false })
-						.sort({ date: -1 })
-						.limit(20);
-					res.status(200).json(posts);
+					const options = {
+						sort: { date: -1 },
+						page: req.params.page,
+						limit: 2
+					};
+					const { docs, pages, page } = await Post.paginate(
+						{ category: req.params.category, private: false },
+						options
+					);
+					res.status(200).json({ posts: docs, pages, page });
 				}
 			} catch (err) {
-				const posts = await Post.find({ category, private: false })
-					.sort({ date: -1 })
-					.limit(20);
-				res.status(200).json(posts);
+				const options = {
+					sort: { date: -1 },
+					page: req.params.page,
+					limit: 2
+				};
+				const { docs, pages, page } = await Post.paginate(
+					{ category: req.params.category, private: false },
+					options
+				);
+				res.status(200).json({ posts: docs, pages, page });
 			}
 		} else {
-			const posts = await Post.find({ category, private: false })
-				.sort({ date: -1 })
-				.limit(20);
-			res.status(200).json(posts);
+			const options = {
+				sort: { date: -1 },
+				page: req.params.page,
+				limit: 2
+			};
+			const { docs, pages, page } = await Post.paginate(
+				{ category: req.params.category, private: false },
+				options
+			);
+			res.status(200).json({ posts: docs, pages, page });
 		}
 	} catch (err) {
 		res.status(400).json({ error: 'that category has no posts yet' });
