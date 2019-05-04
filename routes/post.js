@@ -48,12 +48,20 @@ router.post('/', authenticate, async (req, res) => {
 	}
 });
 
-router.post('/personal', authenticate, async (_req, res) => {
+router.post('/personal/:page', authenticate, async (req, res) => {
 	try {
-		const posts = await Post.find({ _creator: res.user._id }).sort({
-			date: -1
-		});
-		res.status(200).json(posts);
+		const options = {
+			sort: { date: -1 },
+			page: req.params.page,
+			limit: 20
+		};
+		const { docs, pages, page } = await Post.paginate(
+			{
+				_creator: res.user._id
+			},
+			options
+		);
+		res.status(200).json({ posts: docs, pages, page });
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' });
 	}
@@ -71,7 +79,7 @@ router.post('/all/:page', async (req, res) => {
 					const options = {
 						sort: { date: -1 },
 						page: req.params.page,
-						limit: 2
+						limit: 20
 					};
 					const { docs, pages, page } = await Post.paginate(
 						{
@@ -86,7 +94,7 @@ router.post('/all/:page', async (req, res) => {
 					const options = {
 						sort: { date: -1 },
 						page: req.params.page,
-						limit: 2
+						limit: 20
 					};
 					const { docs, pages, page } = await Post.paginate(
 						{ private: false },
@@ -98,7 +106,7 @@ router.post('/all/:page', async (req, res) => {
 				const options = {
 					sort: { date: -1 },
 					page: req.params.page,
-					limit: 2
+					limit: 20
 				};
 				const { docs, pages, page } = await Post.paginate(
 					{ private: false },
@@ -110,7 +118,7 @@ router.post('/all/:page', async (req, res) => {
 			const options = {
 				sort: { date: -1 },
 				page: req.params.page,
-				limit: 2
+				limit: 20
 			};
 			const { docs, pages, page } = await Post.paginate(
 				{ private: false },
@@ -138,7 +146,7 @@ router.post('/category/:category/:page', async (req, res) => {
 					const options = {
 						sort: { date: -1 },
 						page: req.params.page,
-						limit: 2
+						limit: 20
 					};
 					const { docs, pages, page } = await Post.paginate(
 						{ category: req.params.category },
@@ -149,7 +157,7 @@ router.post('/category/:category/:page', async (req, res) => {
 					const options = {
 						sort: { date: -1 },
 						page: req.params.page,
-						limit: 2
+						limit: 20
 					};
 					const { docs, pages, page } = await Post.paginate(
 						{ category: req.params.category, private: false },
@@ -161,7 +169,7 @@ router.post('/category/:category/:page', async (req, res) => {
 				const options = {
 					sort: { date: -1 },
 					page: req.params.page,
-					limit: 2
+					limit: 20
 				};
 				const { docs, pages, page } = await Post.paginate(
 					{ category: req.params.category, private: false },
@@ -173,7 +181,7 @@ router.post('/category/:category/:page', async (req, res) => {
 			const options = {
 				sort: { date: -1 },
 				page: req.params.page,
-				limit: 2
+				limit: 20
 			};
 			const { docs, pages, page } = await Post.paginate(
 				{ category: req.params.category, private: false },
@@ -186,7 +194,7 @@ router.post('/category/:category/:page', async (req, res) => {
 	}
 });
 
-router.post('/user/:user_id', async (req, res) => {
+router.post('/user/:user_id/:page', async (req, res) => {
 	try {
 		const token = req.header('x-auth');
 
@@ -194,24 +202,53 @@ router.post('/user/:user_id', async (req, res) => {
 			try {
 				const user = await User.findByToken(token);
 				if (user) {
-					const posts = await Post.find({ _creator: req.params.user_id })
-						.sort({ date: -1 })
-						.limit(20);
-					res.status(200).json(posts);
+					const options = {
+						sort: { date: -1 },
+						page: req.params.page,
+						limit: 20
+					};
+					const { docs, pages, page } = await Post.paginate(
+						{
+							_creator: req.params.user_id
+						},
+						options
+					);
+					res.status(200).json({ posts: docs, pages, page });
 				} else {
-					res.status(404).json({ error: 'Unauthorized' });
+					const options = {
+						sort: { date: -1 },
+						page: req.params.page,
+						limit: 20
+					};
+					const { docs, pages, page } = await Post.paginate(
+						{ private: false },
+						options
+					);
+					res.status(200).json({ posts: docs, pages, page });
 				}
 			} catch (err) {
-				res.status(404).json({ error: 'Unauthorized' });
+				const options = {
+					sort: { date: -1 },
+					page: req.params.page,
+					limit: 20
+				};
+				const { docs, pages, page } = await Post.paginate(
+					{ private: false },
+					options
+				);
+				res.status(200).json({ posts: docs, pages, page });
 			}
 		} else {
-			const posts = await Post.find({
-				_creator: req.params.user_id,
-				private: false
-			})
-				.sort({ date: -1 })
-				.limit(20);
-			res.status(200).json(posts);
+			const options = {
+				sort: { date: -1 },
+				page: req.params.page,
+				limit: 20
+			};
+			const { docs, pages, page } = await Post.paginate(
+				{ _creator: req.params.user_id, private: false },
+				options
+			);
+			res.status(200).json({ posts: docs, pages, page });
 		}
 	} catch (err) {
 		res.status(400).json({ error: 'This user has no posts added' });
