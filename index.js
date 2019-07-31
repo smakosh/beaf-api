@@ -1,17 +1,26 @@
 const express = require('express')
-const Cors = require('cors')
+const cors = require('cors')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const user = require('./routes/user')
 // const profile = require('./routes/profile')
 const post = require('./routes/post')
-const { DB, allowed_url } = require('./config/config')
+const { DB, allowed_url, gatsby_site } = require('./config/config')
 
 const app = express()
 
-app.use(Cors({
-	origin: allowed_url
-}))
+const whitelist = [allowed_url, gatsby_site]
+const corsOptions = {
+	origin: (origin, callback) => {
+		if (whitelist.indexOf(origin) !== -1) {
+			callback(null, true)
+		} else {
+			callback(new Error('Not allowed by CORS'))
+		}
+	}
+}
+
+app.use(cors(corsOptions))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
