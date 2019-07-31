@@ -194,6 +194,20 @@ router.post('/users/all', async (req, res) => {
 	}
 })
 
+router.post('/users/total', (req, res) => {
+	try {
+		const fields = {
+			username: 1,
+		}
+		User.find({}, fields, {}, (err, users) => {
+			if (err) throw new Error(err)
+			res.status(200).json(users)
+		})
+	} catch (err) {
+		res.status(404).json({ error: 'Unauthorized' })
+	}
+})
+
 router.post('/login', async (req, res) => {
 	try {
 		const user = await User.findByCredentials(req.body.email, req.body.password)
